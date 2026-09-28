@@ -1,0 +1,1272 @@
+/**
+ * ====================================================================
+ * Nhà Kính Thông Minh - Main Stylesheet (Upgraded Visuals & Animations)
+ * Architecture: BEM + Modern Glassmorphism + Dynamic Motion System
+ * ====================================================================
+ */
+
+/* ====================================================================
+   1. RESET & ACCESSIBILITY BASE
+   ==================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-family-base);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    line-height: 1.5;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, select {
+    font: inherit;
+    color: inherit;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-green-500);
+    outline-offset: 2px;
+}
+
+/* ====================================================================
+   2. DYNAMIC ANIMATED BACKGROUND SYSTEM
+   ==================================================================== */
+.bg-backdrop {
+    position: fixed;
+    inset: 0;
+    background-image: url('../assets/greenhouse_bg.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    z-index: -3;
+    filter: brightness(1.02) saturate(1.15);
+    transform: scale(1.03);
+    animation: bgSubtleFloat 35s ease-in-out infinite alternate;
+}
+
+@keyframes bgSubtleFloat {
+    0% { transform: scale(1.02) translateY(0); }
+    50% { transform: scale(1.06) translateY(-8px); }
+    100% { transform: scale(1.03) translateY(4px); }
+}
+
+.bg-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 15% 20%, rgba(245, 255, 245, 0.75) 0%, rgba(235, 248, 235, 0.90) 60%, rgba(225, 242, 225, 0.94) 100%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: -2;
+}
+
+.bg-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ====================================================================
+   3. EXPANDED MODERN NAVBAR (.app-header & .nav-menu)
+   ==================================================================== */
+.app-header {
+    background-color: var(--color-bg-header);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border-bottom: 1px solid var(--color-border-card);
+    box-shadow: var(--shadow-header);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: all var(--transition-normal);
+}
+
+.app-header__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+/* Brand & Zone Selector */
+.app-header__left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.app-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.app-header__logo-badge {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--color-green-500), var(--color-green-400));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 14px rgba(74, 157, 74, 0.4);
+    position: relative;
+    user-select: none;
+    animation: pulseLogo 3s ease-in-out infinite;
+}
+
+@keyframes pulseLogo {
+    0%, 100% { box-shadow: 0 4px 14px rgba(74, 157, 74, 0.4); }
+    50% { box-shadow: 0 4px 22px rgba(74, 157, 74, 0.7); }
+}
+
+.app-header__titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header__title {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.app-header__subtitle {
+    font-size: 0.7rem;
+    color: var(--color-green-700);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.zone-selector {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--radius-pill);
+    padding: 5px 12px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.zone-selector:hover {
+    border-color: var(--color-green-500);
+    box-shadow: 0 2px 8px rgba(74, 157, 74, 0.15);
+}
+
+.zone-selector select {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: inherit;
+}
+
+/* Center Nav Links */
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(235, 245, 235, 0.7);
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--color-border-card);
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+    color: var(--color-green-800);
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.nav-link.active {
+    background: #ffffff;
+    color: var(--color-green-700);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Right Status & Tools */
+.app-header__right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-header__status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.76rem;
+    font-weight: 600;
+    user-select: none;
+    transition: all var(--transition-normal);
+}
+
+.app-header__status-badge--connected {
+    background-color: var(--color-badge-good-bg);
+    color: var(--color-badge-good);
+    border: 1px solid #bce4bc;
+}
+
+.app-header__status-badge--demo {
+    background-color: var(--color-badge-warning-bg);
+    color: var(--color-badge-warning);
+    border: 1px solid #f6dbb6;
+}
+
+.app-header__status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+/* Toolbar Buttons */
+.tool-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--color-text-secondary);
+}
+
+.tool-btn:hover {
+    border-color: var(--color-green-500);
+    background: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.tool-btn.spinning .tool-icon {
+    animation: spin 0.8s ease-in-out infinite;
+}
+
+.app-header__clock-wrap {
+    text-align: right;
+    border-left: 1px solid var(--color-border-card);
+    padding-left: 12px;
+}
+
+.app-header__clock {
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    display: block;
+}
+
+.app-header__date {
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+    display: block;
+}
+
+/* ====================================================================
+   4. MAIN CONTAINER & PRESET SCENARIO BAR
+   ==================================================================== */
+.app-main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 24px 48px;
+}
+
+/* Preset Scenarios */
+.presets-bar {
+    background: var(--color-bg-glass);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.presets-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-green-800);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.presets-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.preset-chip {
+    padding: 6px 14px;
+    background: #ffffff;
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-pill);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.preset-chip:hover {
+    border-color: var(--color-green-400);
+    background: var(--color-green-50);
+    transform: translateY(-1px);
+}
+
+.preset-chip.active {
+    background: linear-gradient(135deg, var(--color-green-500), var(--color-green-600));
+    color: #ffffff;
+    border-color: var(--color-green-600);
+    box-shadow: 0 3px 10px rgba(74, 157, 74, 0.35);
+}
+
+/* ====================================================================
+   5. SECTION BLOCKS (.section-block)
+   ==================================================================== */
+.section-block {
+    background-color: var(--color-bg-glass);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow var(--transition-normal);
+}
+
+.section-block__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.section-block__title {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--color-green-800);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-block__badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    background: var(--color-green-100);
+    color: var(--color-green-800);
+    border-radius: var(--radius-pill);
+}
+
+/* ====================================================================
+   6. SENSOR GRID & HIGH-TECH CARDS (.sensor-card)
+   ==================================================================== */
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.sensor-card {
+    background-color: var(--color-bg-glass-card);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    padding: 20px 20px 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sensor-card:hover {
+    background-color: var(--color-bg-glass-card-hover);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-3px);
+    border-color: var(--color-border-card-hover);
+}
+
+/* Top Accent Line with subtle shimmer */
+.sensor-card__accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-size: 200% 100%;
+}
+
+.sensor-card__accent--temp { background: linear-gradient(90deg, #ff7043, #e74c3c, #ff7043); }
+.sensor-card__accent--humidity { background: linear-gradient(90deg, #5dade2, #2980b9, #5dade2); }
+.sensor-card__accent--soil { background: linear-gradient(90deg, #d4a840, #8B6914, #d4a840); }
+.sensor-card__accent--light { background: linear-gradient(90deg, #f7c948, #f39c12, #f7c948); }
+.sensor-card__accent--water { background: linear-gradient(90deg, #48c9b0, #16a085, #48c9b0); }
+.sensor-card__accent--gas { background: linear-gradient(90deg, #bb8fce, #8e44ad, #bb8fce); }
+
+.sensor-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.sensor-card__icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    background: #f4f8f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform var(--transition-bounce);
+}
+
+.sensor-card:hover .sensor-card__icon-wrap {
+    transform: scale(1.1) rotate(4deg);
+}
+
+.sensor-card__name {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+
+.sensor-card__value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.sensor-card__value {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+.sensor-card__unit {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+/* Progress Track & Animated Glow Head */
+.sensor-card__progress-track {
+    height: 7px;
+    background-color: #e5ece5;
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    margin-bottom: 4px;
+    position: relative;
+}
+
+.sensor-card__progress-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.sensor-card__progress-fill--temp { background: linear-gradient(90deg, #ff9a76, #e74c3c); }
+.sensor-card__progress-fill--humidity { background: linear-gradient(90deg, #87ceeb, #2980b9); }
+.sensor-card__progress-fill--soil { background: linear-gradient(90deg, #e0be68, #8B6914); }
+.sensor-card__progress-fill--light { background: linear-gradient(90deg, #ffe082, #f39c12); }
+.sensor-card__progress-fill--water { background: linear-gradient(90deg, #80deea, #16a085); }
+.sensor-card__progress-fill--gas { background: linear-gradient(90deg, #ce93d8, #8e44ad); }
+
+.sensor-card__progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.sensor-card__divider {
+    border: none;
+    border-top: 1px dashed var(--color-border-card);
+    margin: 0 0 10px 0;
+}
+
+/* ====================================================================
+   7. INTERACTIVE VISUAL THRESHOLD CONTROLS (Sliders & Steppers)
+   ==================================================================== */
+.sensor-card__threshold-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.thresh-control-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.thresh-control-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+}
+
+.thresh-control-title {
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.thresh-stepper-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--radius-xs);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.stepper-btn {
+    background: #f4f7f4;
+    border: none;
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-green-800);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast);
+}
+
+.stepper-btn:hover {
+    background: var(--color-green-100);
+}
+
+.thresh-input-number {
+    width: 48px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    outline: none;
+}
+
+.thresh-unit-pill {
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    padding-right: 4px;
+}
+
+/* Sleek Visual Range Slider */
+.thresh-range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: var(--radius-pill);
+    background: #e2ebe2;
+    outline: none;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.thresh-range-slider:hover {
+    background: #d4e2d4;
+}
+
+.thresh-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--color-green-500);
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: transform var(--transition-bounce), background-color var(--transition-fast);
+}
+
+.thresh-range-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    background: var(--color-green-600);
+}
+
+.thresh-range-slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--color-green-500);
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: transform var(--transition-bounce);
+}
+
+.sensor-card__save-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px 0 2px;
+    background: transparent;
+    border: none;
+    color: var(--color-green-600);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-top: 1px solid #eef3ee;
+}
+
+.sensor-card__save-btn:hover {
+    color: var(--color-green-800);
+    transform: translateY(-1px);
+}
+
+/* ====================================================================
+   8. STATUS BADGES (.status-badge)
+   ==================================================================== */
+.status-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-transform: uppercase;
+}
+
+.status-badge--good    { background-color: var(--color-badge-good-bg); color: var(--color-badge-good); border: 1px solid #c8e8c8; }
+.status-badge--warning { background-color: var(--color-badge-warning-bg); color: var(--color-badge-warning); border: 1px solid #f7dfbe; }
+.status-badge--danger  { background-color: var(--color-badge-danger-bg); color: var(--color-badge-danger); border: 1px solid #f9cdcd; }
+.status-badge--info    { background-color: var(--color-badge-info-bg); color: var(--color-badge-info); border: 1px solid #c9e3f7; }
+
+/* ====================================================================
+   9. DUAL BOTTOM SECTION: CONTROLS & LOGS
+   ==================================================================== */
+.bottom-section {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 24px;
+}
+
+/* Master Actions Toolbar */
+.master-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.master-btn {
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid var(--color-border-card);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text-secondary);
+}
+
+.master-btn:hover {
+    background: var(--color-green-50);
+    border-color: var(--color-green-400);
+}
+
+.master-btn--emergency {
+    color: var(--color-accent-temp);
+    border-color: #f7c5c0;
+}
+
+.master-btn--emergency:hover {
+    background: #fdeaea;
+    border-color: var(--color-accent-temp);
+}
+
+/* Device Actuator Cards with Dynamic Animated Icons */
+.control-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.device-card {
+    background-color: var(--color-bg-glass-card);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+}
+
+.device-card:hover {
+    background-color: var(--color-bg-glass-card-hover);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+.device-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.device-card__info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Eye-Catching Animated Device Graphic Container */
+.device-card__graphic-box {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: #f2f7f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+/* Fan Rotation Animation */
+.device-card.device-card--active #iconFan {
+    animation: spinFan 1s linear infinite;
+}
+
+@keyframes spinFan {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Pump Water Pulse Animation */
+.device-card.device-card--active #iconPump {
+    animation: pumpPulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes pumpPulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 2px #3498db); }
+    100% { transform: scale(1.22); filter: drop-shadow(0 0 8px #2980b9); }
+}
+
+/* LED Light Radiant Ray */
+.device-card.device-card--active #iconLed {
+    animation: glowLed 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes glowLed {
+    0% { filter: drop-shadow(0 0 3px #f1c40f); }
+    100% { filter: drop-shadow(0 0 14px #f39c12) brightness(1.2); }
+}
+
+/* Buzzer Vibrate Ring Animation */
+.device-card.device-card--active #iconBuzzer {
+    animation: vibrateBuzzer 0.25s linear infinite;
+}
+
+@keyframes vibrateBuzzer {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-12deg); }
+    75% { transform: rotate(12deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.device-card__name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--color-text-primary);
+}
+
+.device-card__sub {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+
+/* Large Switch Toggle */
+.device-card__toggle {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.device-card__toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.device-card__toggle-slider {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-bg-toggle-off);
+    border-radius: var(--radius-pill);
+    transition: background-color var(--transition-normal);
+}
+
+.device-card__toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    left: 2px;
+    top: 2px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transition: transform var(--transition-normal);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.device-card__toggle input:checked + .device-card__toggle-slider {
+    background-color: var(--color-green-500);
+}
+
+.device-card__toggle input:checked + .device-card__toggle-slider::before {
+    transform: translateX(22px);
+}
+
+/* Mode Buttons */
+.device-card__mode-group {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1.5px solid var(--color-border-card);
+    background-color: #ffffff;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-sm);
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.mode-btn:hover {
+    border-color: var(--color-green-400);
+}
+
+.mode-btn--active {
+    background-color: var(--color-green-50);
+    border-color: var(--color-green-500);
+    color: var(--color-green-700);
+}
+
+.device-card__status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.device-card__status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.device-card__status--on {
+    color: var(--color-green-600);
+}
+
+.device-card__status--on .device-card__status-dot {
+    background-color: var(--color-green-500);
+    box-shadow: 0 0 8px rgba(74, 157, 74, 0.7);
+}
+
+.device-card__status--off {
+    color: var(--color-text-muted);
+}
+
+.device-card__status--off .device-card__status-dot {
+    background-color: var(--color-bg-toggle-off);
+}
+
+/* ====================================================================
+   10. ACTIVITY LOG WITH PULSE TIMELINE
+   ==================================================================== */
+.activity-log {
+    background-color: var(--color-bg-glass-card);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.activity-log::-webkit-scrollbar { width: 6px; }
+.activity-log::-webkit-scrollbar-track { background: transparent; }
+.activity-log::-webkit-scrollbar-thumb {
+    background-color: #cbd8cb;
+    border-radius: var(--radius-pill);
+}
+
+.activity-log__entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f4f0;
+    font-size: 0.82rem;
+    animation: logFadeIn 0.3s ease-out;
+}
+
+.activity-log__entry:last-child {
+    border-bottom: none;
+}
+
+.activity-log__time {
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-size: 0.74rem;
+    font-weight: 600;
+    min-width: 60px;
+}
+
+.activity-log__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.activity-log__dot--info { background-color: var(--color-green-500); }
+.activity-log__dot--warning { background-color: var(--color-accent-light); }
+.activity-log__dot--danger { background-color: var(--color-accent-temp); }
+
+.activity-log__message {
+    color: var(--color-text-secondary);
+    flex: 1;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+@keyframes logFadeIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ====================================================================
+   11. REAL-TIME TELEMETRY CHART (.chart-panel)
+   ==================================================================== */
+.chart-panel {
+    background-color: var(--color-bg-glass-card);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    padding: 20px;
+}
+
+.chart-panel__tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.chart-tab {
+    padding: 6px 14px;
+    background-color: #f4f8f4;
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-pill);
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.chart-tab:hover {
+    border-color: var(--color-green-400);
+    background: #ffffff;
+}
+
+.chart-tab--active {
+    background-color: var(--color-green-500);
+    border-color: var(--color-green-500);
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(74, 157, 74, 0.3);
+}
+
+.chart-panel__canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 270px;
+}
+
+.chart-panel__canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ====================================================================
+   12. ALERT BANNER (.alert-banner)
+   ==================================================================== */
+.alert-banner {
+    background-color: rgba(253, 234, 234, 0.95);
+    border: 1px solid #f5c6c6;
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    margin-bottom: 18px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    animation: alertSlideDown 0.3s ease-out;
+    box-shadow: 0 4px 14px rgba(231, 76, 60, 0.15);
+}
+
+.alert-banner--visible {
+    display: flex;
+}
+
+.alert-banner__icon {
+    font-size: 20px;
+    line-height: 1;
+    animation: pulseAlert 1s infinite alternate;
+}
+
+@keyframes pulseAlert {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.2); }
+}
+
+.alert-banner__text {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-accent-temp);
+}
+
+.alert-banner__close-btn {
+    background: none;
+    border: none;
+    color: #c0392b;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color var(--transition-fast);
+}
+
+.alert-banner__close-btn:hover {
+    background-color: rgba(231, 76, 60, 0.15);
+}
+
+@keyframes alertSlideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ====================================================================
+   13. TOAST NOTIFICATIONS (.toast)
+   ==================================================================== */
+.toast-container {
+    position: fixed;
+    top: 76px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: var(--blur-glass);
+    border: 1px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    min-width: 270px;
+    max-width: 390px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-toast);
+    animation: toastEnter 0.35s ease;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.toast--success { border-left: 4px solid var(--color-green-500); }
+.toast--error   { border-left: 4px solid var(--color-accent-temp); }
+.toast--warning { border-left: 4px solid var(--color-accent-light); }
+
+.toast__icon { font-size: 16px; line-height: 1; }
+.toast__message { flex: 1; color: var(--color-text-secondary); }
+
+@keyframes toastEnter {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastExit {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(20px); }
+}
+
+/* ====================================================================
+   14. FOOTER
+   ==================================================================== */
+.app-footer {
+    text-align: center;
+    padding: 24px 18px;
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-top: 1px solid var(--color-border-card);
+}
+
+/* ====================================================================
+   15. RESPONSIVE BREAKPOINTS
+   ==================================================================== */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+    .app-nav { display: none; }
+    .sensor-grid { grid-template-columns: repeat(2, 1fr); }
+    .bottom-section { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+    .app-header__inner { padding: 10px 14px; }
+    .app-header__subtitle { display: none; }
+    .zone-selector { display: none; }
+    .app-header__clock-wrap { display: none; }
+    .app-main { padding: 14px; }
+    .section-block { padding: 16px; }
+    .sensor-grid { grid-template-columns: 1fr; }
+    .control-grid { grid-template-columns: 1fr; }
+    .sensor-card__value { font-size: 2rem; }
+    .presets-bar { flex-direction: column; align-items: flex-start; }
+    .toast-container { right: 12px; left: 12px; }
+    .toast { min-width: unset; max-width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -1,0 +1,101 @@
+/**
+ * ====================================================================
+ * Nhà Kính Thông Minh - Design System Tokens & Variables
+ * Premium Light Theme + Glassmorphism + Dynamic Animations
+ * ====================================================================
+ */
+
+:root {
+    /* --- Base Color Palette --- */
+    --color-bg-page: #f0f5f0;
+    --color-bg-glass: rgba(255, 255, 255, 0.88);
+    --color-bg-glass-card: rgba(255, 255, 255, 0.92);
+    --color-bg-glass-card-hover: rgba(255, 255, 255, 0.98);
+    --color-bg-header: rgba(255, 255, 255, 0.92);
+    --color-bg-section: rgba(240, 248, 240, 0.75);
+    --color-bg-input: #f2f7f2;
+    --color-bg-toggle-off: #cbd5e1;
+
+    /* --- Borders & Outlines --- */
+    --color-border-card: rgba(220, 235, 220, 0.85);
+    --color-border-card-hover: rgba(74, 157, 74, 0.4);
+    --color-border-input: #c4d7c4;
+    --color-border-section: rgba(200, 220, 200, 0.65);
+
+    /* --- Primary Brand Greens (Lush Botanical Palette) --- */
+    --color-green-50: #edf7ed;
+    --color-green-100: #d4ecd4;
+    --color-green-200: #a8d8a8;
+    --color-green-300: #7cc47c;
+    --color-green-400: #5cb85c;
+    --color-green-500: #4a9d4a;
+    --color-green-600: #388e38;
+    --color-green-700: #2d6e2d;
+    --color-green-800: #1b5e20;
+    --color-green-glow: rgba(74, 157, 74, 0.35);
+
+    /* --- Typography Colors --- */
+    --color-text-primary: #142814;
+    --color-text-secondary: #3b5a3b;
+    --color-text-muted: #6b8a6b;
+    --color-text-light: #94b494;
+
+    /* --- Sensor Semantic Accents --- */
+    --color-accent-temp: #e74c3c;
+    --color-accent-temp-rgb: 231, 76, 60;
+    --color-accent-humidity: #2980b9;
+    --color-accent-humidity-rgb: 41, 128, 185;
+    --color-accent-soil: #8B6914;
+    --color-accent-soil-rgb: 139, 105, 20;
+    --color-accent-light: #f39c12;
+    --color-accent-light-rgb: 243, 156, 18;
+    --color-accent-water: #16a085;
+    --color-accent-water-rgb: 22, 160, 133;
+    --color-accent-gas: #8e44ad;
+    --color-accent-gas-rgb: 142, 68, 173;
+
+    /* --- Status Badges --- */
+    --color-badge-good: #2d6e2d;
+    --color-badge-good-bg: #edf7ed;
+    --color-badge-warning: #b76b00;
+    --color-badge-warning-bg: #fef3e2;
+    --color-badge-danger: #c0392b;
+    --color-badge-danger-bg: #fdeaea;
+    --color-badge-info: #1f618d;
+    --color-badge-info-bg: #e8f4fd;
+
+    /* --- Typography Standards --- */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-size-xs: 0.72rem;
+    --font-size-sm: 0.8rem;
+    --font-size-base: 0.9rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.5rem;
+    --font-size-hero: 2.4rem;
+
+    /* --- Border Radius Scale --- */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+    --radius-pill: 9999px;
+
+    /* --- Elevation & Shadows --- */
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 4px 20px rgba(0, 40, 10, 0.07);
+    --shadow-card-hover: 0 8px 30px rgba(74, 157, 74, 0.18);
+    --shadow-header: 0 4px 20px rgba(0, 30, 10, 0.05);
+    --shadow-toast: 0 10px 30px rgba(0, 30, 10, 0.15);
+    --shadow-glow: 0 0 20px var(--color-green-glow);
+
+    /* --- Glassmorphism Blurs --- */
+    --blur-glass: blur(14px);
+    --blur-modal: blur(20px);
+
+    /* --- Transitions & Timing --- */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+    --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Nhà Kính Thông Minh - Trạm Quan Trắc &amp; Điều Khiển IoT</title>
+    
+    <!-- SEO & Metadata -->
+    <meta name="description" content="Trạm quan trắc và điều khiển tự động hóa nhà kính thông minh thời gian thực với vi điều khiển ESP32, hỗ trợ 6 loại cảm biến và 4 kênh relay.">
+    <meta name="keywords" content="nhà kính thông minh, iot, esp32, dht22, bh1750, mq2, tự động hóa nông nghiệp">
+    <meta name="author" content="Smart Greenhouse Team">
+    <meta name="theme-color" content="#388e38">
+
+    <!-- Open Graph Social Metadata -->
+    <meta property="og:title" content="Nhà Kính Thông Minh - Trạm Quan Trắc &amp; Điều Khiển IoT">
+    <meta property="og:description" content="Hệ thống điều khiển nông nghiệp công nghệ cao trực quan thời gian thực.">
+    <meta property="og:type" content="website">
+
+    <!-- Preconnect & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Design Tokens & Main Stylesheet -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ===== DYNAMIC ANIMATED BACKGROUND SYSTEM ===== -->
+    <div class="bg-backdrop" aria-hidden="true"></div>
+    <div class="bg-overlay" aria-hidden="true"></div>
+    <canvas class="bg-canvas" id="bgCanvas" aria-hidden="true"></canvas>
+
+    <!-- ===== FULL MODERN NAVBAR ===== -->
+    <header class="app-header" role="banner">
+        <div class="app-header__inner">
+            <!-- Left: Brand & Zone Selector -->
+            <div class="app-header__left">
+                <a href="#overview" class="app-header__brand" title="Trang chủ Nhà Kính">
+                    <div class="app-header__logo-badge" aria-hidden="true">🌿</div>
+                    <div class="app-header__titles">
+                        <span class="app-header__title">Nhà Kính Thông Minh</span>
+                        <span class="app-header__subtitle">Smart Greenhouse IoT Pro</span>
+                    </div>
+                </a>
+
+                <div class="zone-selector" title="Chọn phân khu nhà kính">
+                    <span aria-hidden="true">📍</span>
+                    <select id="zoneSelect" onchange="handleZoneChange(this)" aria-label="Phân khu nhà kính">
+                        <option value="zone-a">Khu A - Rau Thủy Canh</option>
+                        <option value="zone-b">Khu B - Dưa Lưới Công Nghệ Cao</option>
+                        <option value="zone-c">Khu C - Vườn Ươm Cây Giống</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Center: Full Navigation Links -->
+            <nav class="app-nav" role="navigation" aria-label="Menu chính">
+                <a href="#overview" class="nav-link active">📊 Tổng quan</a>
+                <a href="#sensors" class="nav-link">🌱 Cảm biến</a>
+                <a href="#actuators" class="nav-link">⚡ Thiết bị</a>
+                <a href="#charts" class="nav-link">📈 Đồ thị</a>
+                <a href="#logs" class="nav-link">📋 Nhật ký</a>
+            </nav>
+
+            <!-- Right: Status Badge, Quick Tools & Digital Clock -->
+            <div class="app-header__right">
+                <div class="app-header__status-badge app-header__status-badge--demo" id="connectionBadge" role="status" aria-live="polite">
+                    <span class="app-header__status-dot" aria-hidden="true"></span>
+                    <span id="connectionText">Chế độ Demo</span>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <button class="tool-btn" id="btnRefresh" type="button" onclick="refreshData()" title="Làm mới dữ liệu">
+                    <span class="tool-icon" aria-hidden="true">🔄</span>
+                </button>
+                <button class="tool-btn" type="button" onclick="triggerTestAlert()" title="Thử nghiệm báo động">
+                    <span class="tool-icon" aria-hidden="true">🔔</span>
+                </button>
+                <button class="tool-btn" type="button" onclick="exportTelemetryCSV()" title="Xuất báo cáo CSV">
+                    <span class="tool-icon" aria-hidden="true">📥</span>
+                </button>
+                <button class="tool-btn" type="button" onclick="toggleFullscreen()" title="Chế độ toàn màn hình">
+                    <span class="tool-icon" aria-hidden="true">⛶</span>
+                </button>
+
+                <!-- Clock & Date -->
+                <div class="app-header__clock-wrap">
+                    <time class="app-header__clock" id="clock" aria-label="Giờ hiện tại">--:--:--</time>
+                    <span class="app-header__date" id="headerDate">--/--/----</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="app-main" id="overview" role="main">
+        <!-- Emergency Alert Banner -->
+        <div class="alert-banner" id="alertBanner" role="alert" aria-live="assertive">
+            <span class="alert-banner__icon" aria-hidden="true">🚨</span>
+            <span class="alert-banner__text" id="alertText"></span>
+            <button class="alert-banner__close-btn" type="button" onclick="dismissAlert()" aria-label="Đóng thông báo">✕</button>
+        </div>
+
+        <!-- Scenario Presets Bar -->
+        <div class="presets-bar" role="toolbar" aria-label="Kịch bản vận hành nhanh">
+            <div class="presets-label">
+                <span aria-hidden="true">⚡</span> KỊCH BẢN MÔI TRƯỜNG NHANH:
+            </div>
+            <div class="presets-group">
+                <button class="preset-chip active" data-preset="standard" type="button" onclick="applyPreset('standard')">🌿 Tiêu chuẩn</button>
+                <button class="preset-chip" data-preset="summer" type="button" onclick="applyPreset('summer')">☀️ Mùa hè nắng nóng</button>
+                <button class="preset-chip" data-preset="rainy" type="button" onclick="applyPreset('rainy')">🌧️ Mùa mưa ẩm</button>
+                <button class="preset-chip" data-preset="nursery" type="button" onclick="applyPreset('nursery')">🌱 Vườn ươm nhạy cảm</button>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 1: SENSOR MONITORING & THRESHOLDS
+             ========================================== -->
+        <section class="section-block" id="sensors" aria-labelledby="heading-sensors">
+            <div class="section-block__header">
+                <h2 class="section-block__title" id="heading-sensors">
+                    <span aria-hidden="true">🌱</span> GIÁM SÁT CẢM BIẾN &amp; ĐIỀU CHỈNH TRỰC QUAN
+                </h2>
+                <span class="section-block__badge">6 Cảm biến trực tiếp</span>
+            </div>
+
+            <div class="sensor-grid" id="sensorGrid">
+
+                <!-- 1. TEMPERATURE SENSOR -->
+                <article class="sensor-card" id="cardTemp" aria-labelledby="label-temp">
+                    <div class="sensor-card__accent sensor-card__accent--temp" aria-hidden="true"></div>
+                    <div class="sensor-card__header">
+                        <div class="sensor-card__icon-wrap" aria-hidden="true">🌡️</div>
+                        <span class="status-badge status-badge--good" id="badgeTemp" role="status">Tối Ưu</span>
+                    </div>
+                    <h3 class="sensor-card__name" id="label-temp">Nhiệt độ không khí</h3>
+                    <div class="sensor-card__value-row">
+                        <span class="sensor-card__value" id="valTemp" aria-live="polite">--</span>
+                        <span class="sensor-card__unit">°C</span>
+                    </div>
+                    <div class="sensor-card__progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="50" aria-label="Thanh mức nhiệt độ">
+                        <div class="sensor-card__progress-fill sensor-card__progress-fill--temp" id="barTemp" style="width: 0%"></div>
+                    </div>
+                    <div class="sensor-card__progress-labels" aria-hidden="true">
+                        <span>0°C</span>
+                        <span>50°C</span>
+                    </div>
+                    <hr class="sensor-card__divider">
+
+                    <!-- Interactive Slider & Stepper Controls -->
+                    <div class="sensor-card__threshold-group">
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">🌀 Bật quạt khi ≥</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshTempHigh','rangeTempHigh',-0.5,0,50)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshTempHigh" value="35" min="0" max="50" step="0.5" oninput="syncInput(this,'rangeTempHigh')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshTempHigh','rangeTempHigh',0.5,0,50)">+</button>
+                                    <span class="thresh-unit-pill">°C</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeTempHigh" min="0" max="50" step="0.5" value="35" oninput="syncSlider(this,'threshTempHigh')">
+                        </div>
+
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">🛑 Tắt quạt khi ≤</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshTempLow','rangeTempLow',-0.5,0,50)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshTempLow" value="28" min="0" max="50" step="0.5" oninput="syncInput(this,'rangeTempLow')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshTempLow','rangeTempLow',0.5,0,50)">+</button>
+                                    <span class="thresh-unit-pill">°C</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeTempLow" min="0" max="50" step="0.5" value="28" oninput="syncSlider(this,'threshTempLow')">
+                        </div>
+                    </div>
+                    <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('temp')">
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng nhiệt độ
+                    </button>
+                </article>
+
+                <!-- 2. AIR HUMIDITY SENSOR -->
+                <article class="sensor-card" id="cardHumidity" aria-labelledby="label-humidity">
+                    <div class="sensor-card__accent sensor-card__accent--humidity" aria-hidden="true"></div>
+                    <div class="sensor-card__header">
+                        <div class="sensor-card__icon-wrap" aria-hidden="true">💧</div>
+                        <span class="status-badge status-badge--good" id="badgeHumidity" role="status">Ổn Định</span>
+                    </div>
+                    <h3 class="sensor-card__name" id="label-humidity">Độ ẩm không khí</h3>
+                    <div class="sensor-card__value-row">
+                        <span class="sensor-card__value" id="valHumidity" aria-live="polite">--</span>
+                        <span class="sensor-card__unit">%</span>
+                    </div>
+                    <div class="sensor-card__progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Thanh mức độ ẩm không khí">
+                        <div class="sensor-card__progress-fill sensor-card__progress-fill--humidity" id="barHumidity" style="width: 0%"></div>
+                    </div>
+                    <div class="sensor-card__progress-labels" aria-hidden="true">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                    <hr class="sensor-card__divider">
+
+                    <!-- Interactive Slider & Stepper Controls -->
+                    <div class="sensor-card__threshold-group">
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">⚠️ Báo động thấp ≤</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshHumLow','rangeHumLow',-1,0,100)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshHumLow" value="10" min="0" max="100" oninput="syncInput(this,'rangeHumLow')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshHumLow','rangeHumLow',1,0,100)">+</button>
+                                    <span class="thresh-unit-pill">%</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeHumLow" min="0" max="100" value="10" oninput="syncSlider(this,'threshHumLow')">
+                        </div>
+
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">⚠️ Báo động cao ≥</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshHumHigh','rangeHumHigh',-1,0,100)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshHumHigh" value="50" min="0" max="100" oninput="syncInput(this,'rangeHumHigh')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshHumHigh','rangeHumHigh',1,0,100)">+</button>
+                                    <span class="thresh-unit-pill">%</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeHumHigh" min="0" max="100" value="50" oninput="syncSlider(this,'threshHumHigh')">
+                        </div>
+                    </div>
+                    <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('humidity')">
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng độ ẩm KK
+                    </button>
+                </article>
+
+                <!-- 3. SOIL MOISTURE SENSOR -->
+                <article class="sensor-card" id="cardSoil" aria-labelledby="label-soil">
+                    <div class="sensor-card__accent sensor-card__accent--soil" aria-hidden="true"></div>
+                    <div class="sensor-card__header">
+                        <div class="sensor-card__icon-wrap" aria-hidden="true">🌱</div>
+                        <span class="status-badge status-badge--good" id="badgeSoil" role="status">Màu Mỡ</span>
+                    </div>
+                    <h3 class="sensor-card__name" id="label-soil">Độ ẩm đất</h3>
+                    <div class="sensor-card__value-row">
+                        <span class="sensor-card__value" id="valSoil" aria-live="polite">--</span>
+                        <span class="sensor-card__unit">%</span>
+                    </div>
+                    <div class="sensor-card__progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Thanh mức độ ẩm đất">
+                        <div class="sensor-card__progress-fill sensor-card__progress-fill--soil" id="barSoil" style="width: 0%"></div>
+                    </div>
+                    <div class="sensor-card__progress-labels" aria-hidden="true">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                    <hr class="sensor-card__divider">
+
+                    <!-- Interactive Slider & Stepper Controls -->
+                    <div class="sensor-card__threshold-group">
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">💦 Bật tưới khi ≤</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshSoilLow','rangeSoilLow',-1,0,100)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshSoilLow" value="30" min="0" max="100" oninput="syncInput(this,'rangeSoilLow')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshSoilLow','rangeSoilLow',1,0,100)">+</button>
+                                    <span class="thresh-unit-pill">%</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeSoilLow" min="0" max="100" value="30" oninput="syncSlider(this,'threshSoilLow')">
+                        </div>
+
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">🛑 Dừng tưới khi ≥</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshSoilHigh','rangeSoilHigh',-1,0,100)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshSoilHigh" value="70" min="0" max="100" oninput="syncInput(this,'rangeSoilHigh')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshSoilHigh','rangeSoilHigh',1,0,100)">+</button>
+                                    <span class="thresh-unit-pill">%</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeSoilHigh" min="0" max="100" value="70" oninput="syncSlider(this,'threshSoilHigh')">
+                        </div>
+                    </div>
+                    <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('soil')">
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng ẩm đất
+                    </button>
+                </article>
+
+                <!-- 4. LIGHT SENSOR (BH1750) -->
+                <article class="sensor-card" id="cardLight" aria-labelledby="label-light">
+                    <div class="sensor-card__accent sensor-card__accent--light" aria-hidden="true"></div>
+                    <div class="sensor-card__header">
+                        <div class="sensor-card__icon-wrap" aria-hidden="true">☀️</div>
+                        <span class="status-badge status-badge--warning" id="badgeLight" role="status">Thiếu Sáng</span>
+                    </div>
+                    <h3 class="sensor-card__name" id="label-light">Cường độ ánh sáng</h3>
+                    <div class="sensor-card__value-row">
+                        <span class="sensor-card__value" id="valLight" aria-live="polite">--</span>
+                        <span class="sensor-card__unit">lux</span>
+                    </div>
+                    <div class="sensor-card__progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="65535" aria-label="Thanh mức cường độ ánh sáng">
+                        <div class="sensor-card__progress-fill sensor-card__progress-fill--light" id="barLight" style="width: 0%"></div>
+                    </div>
+                    <div class="sensor-card__progress-labels" aria-hidden="true">
+                        <span>0 lux</span>
+                        <span>65535 lux</span>
+                    </div>
+                    <hr class="sensor-card__divider">
+
+                    <!-- Interactive Slider & Stepper Controls -->
+                    <div class="sensor-card__threshold-group">
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">💡 Bật đèn khi ≤</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshLightLow','rangeLightLow',-50,0,65535)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshLightLow" value="300" min="0" max="65535" oninput="syncInput(this,'rangeLightLow')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshLightLow','rangeLightLow',50,0,65535)">+</button>
+                                    <span class="thresh-unit-pill">lux</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeLightLow" min="0" max="2000" value="300" oninput="syncSlider(this,'threshLightLow')">
+                        </div>
+
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">🛑 Tắt đèn khi ≥</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshLightHigh','rangeLightHigh',-50,0,65535)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshLightHigh" value="1000" min="0" max="65535" oninput="syncInput(this,'rangeLightHigh')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshLightHigh','rangeLightHigh',50,0,65535)">+</button>
+                                    <span class="thresh-unit-pill">lux</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeLightHigh" min="0" max="5000" value="1000" oninput="syncSlider(this,'threshLightHigh')">
+                        </div>
+                    </div>
+                    <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('light')">
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng ánh sáng
+                    </button>
+                </article>
+
+                <!-- 5. WATER LEVEL SENSOR -->
+                <article class="sensor-card" id="cardWater" aria-labelledby="label-water">
+                    <div class="sensor-card__accent sensor-card__accent--water" aria-hidden="true"></div>
+                    <div class="sensor-card__header">
+                        <div class="sensor-card__icon-wrap" aria-hidden="true">🚰</div>
+                        <span class="status-badge status-badge--info" id="badgeWater" role="status">Bể Đầy</span>
+                    </div>
+                    <h3 class="sensor-card__name" id="label-water">Mực nước bể chứa</h3>
+                    <div class="sensor-card__value-row">
+                        <span class="sensor-card__value" id="valWater" aria-live="polite">--</span>
+                        <span class="sensor-card__unit">%</span>
+                    </div>
+                    <div class="sensor-card__progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Thanh mức nước trong bể">
+                        <div class="sensor-card__progress-fill sensor-card__progress-fill--water" id="barWater" style="width: 0%"></div>
+                    </div>
+                    <div class="sensor-card__progress-labels" aria-hidden="true">
+                        <span>Hết nước (0%)</span>
+                        <span>Đầy bể (100%)</span>
+                    </div>
+                    <hr class="sensor-card__divider">
+
+                    <!-- Interactive Slider & Stepper Controls -->
+                    <div class="sensor-card__threshold-group">
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">⚠️ Cảnh báo cạn nước ≤</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshWaterLow','rangeWaterLow',-1,0,100)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshWaterLow" value="5" min="0" max="100" oninput="syncInput(this,'rangeWaterLow')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshWaterLow','rangeWaterLow',1,0,100)">+</button>
+                                    <span class="thresh-unit-pill">%</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeWaterLow" min="0" max="50" value="5" oninput="syncSlider(this,'threshWaterLow')">
+                        </div>
+                    </div>
+                    <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('water')">
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng mực nước
+                    </button>
+                </article>
+
+                <!-- 6. GAS / SMOKE SENSOR (MQ-2) -->
+                <article class="sensor-card" id="cardGas" aria-labelledby="label-gas">
+                    <div class="sensor-card__accent sensor-card__accent--gas" aria-hidden="true"></div>
+                    <div class="sensor-card__header">
+                        <div class="sensor-card__icon-wrap" aria-hidden="true">💨</div>
+                        <span class="status-badge status-badge--good" id="badgeGas" role="status">Trong Lành</span>
+                    </div>
+                    <h3 class="sensor-card__name" id="label-gas">Khói / Gas (MQ-2)</h3>
+                    <div class="sensor-card__value-row">
+                        <span class="sensor-card__value" id="valGas" aria-live="polite">--</span>
+                        <span class="sensor-card__unit">ppm</span>
+                    </div>
+                    <div class="sensor-card__progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="1000" aria-label="Thanh nồng độ khói gas">
+                        <div class="sensor-card__progress-fill sensor-card__progress-fill--gas" id="barGas" style="width: 0%"></div>
+                    </div>
+                    <div class="sensor-card__progress-labels" aria-hidden="true">
+                        <span>An toàn (0)</span>
+                        <span>Nguy hiểm (1000+)</span>
+                    </div>
+                    <hr class="sensor-card__divider">
+
+                    <!-- Interactive Slider & Stepper Controls -->
+                    <div class="sensor-card__threshold-group">
+                        <div class="thresh-control-block">
+                            <div class="thresh-control-header">
+                                <span class="thresh-control-title">🚨 Bật còi báo động khi ≥</span>
+                                <div class="thresh-stepper-box">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshGasHigh','rangeGasHigh',-20,0,10000)">−</button>
+                                    <input type="number" class="thresh-input-number" id="threshGasHigh" value="400" min="0" max="10000" oninput="syncInput(this,'rangeGasHigh')">
+                                    <button class="stepper-btn" type="button" onclick="stepThresh('threshGasHigh','rangeGasHigh',20,0,10000)">+</button>
+                                    <span class="thresh-unit-pill">ppm</span>
+                                </div>
+                            </div>
+                            <input type="range" class="thresh-range-slider" id="rangeGasHigh" min="0" max="2000" value="400" oninput="syncSlider(this,'threshGasHigh')">
+                        </div>
+                    </div>
+                    <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('gas')">
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng khói/gas
+                    </button>
+                </article>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SECTION 2: CONTROLS & ACTIVITY LOG
+             ========================================== -->
+        <div class="bottom-section">
+            <!-- Device Actuators Control Panel -->
+            <section class="section-block" id="actuators" aria-labelledby="heading-controls">
+                <div class="section-block__header">
+                    <h2 class="section-block__title" id="heading-controls">
+                        <span aria-hidden="true">⚡</span> ĐIỀU KHIỂN THIẾT BỊ ĐỘNG CƠ &amp; RELAY
+                    </h2>
+                    <span class="section-block__badge">4 Kênh Relay</span>
+                </div>
+
+                <!-- Master Actions Toolbar -->
+                <div class="master-toolbar" role="toolbar" aria-label="Lệnh vận hành toàn hệ thống">
+                    <button class="master-btn" type="button" onclick="setAllDevicesMode('auto')">
+                        <span aria-hidden="true">🤖</span> Tất cả Tự động
+                    </button>
+                    <button class="master-btn" type="button" onclick="turnAllOn()">
+                        <span aria-hidden="true">⚡</span> Bật tất cả
+                    </button>
+                    <button class="master-btn master-btn--emergency" type="button" onclick="emergencyStop()">
+                        <span aria-hidden="true">🛑</span> Dừng khẩn cấp
+                    </button>
+                </div>
+
+                <div class="control-grid">
+                    <!-- 1. Pump Device -->
+                    <div class="device-card" id="devCardPump">
+                        <div class="device-card__header">
+                            <div class="device-card__info">
+                                <div class="device-card__graphic-box" id="graphicPump" aria-hidden="true">
+                                    <span id="iconPump">💦</span>
+                                </div>
+                                <div>
+                                    <div class="device-card__name">Máy bơm tưới</div>
+                                    <div class="device-card__sub">Relay kênh 1 (GPIO 25)</div>
+                                </div>
+                            </div>
+                            <label class="device-card__toggle" aria-label="Bật hoặc tắt máy bơm tưới">
+                                <input type="checkbox" id="togglePump" onchange="toggleDevice('pump', this.checked)">
+                                <span class="device-card__toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="device-card__mode-group" role="group" aria-label="Chế độ vận hành máy bơm">
+                            <button class="mode-btn mode-btn--active" id="pumpAuto" type="button" onclick="setMode('pump','auto')">🤖 Tự động</button>
+                            <button class="mode-btn" id="pumpManual" type="button" onclick="setMode('pump','manual')">✋ Thủ công</button>
+                        </div>
+                        <div class="device-card__status device-card__status--off" id="statusPump" role="status">
+                            <span class="device-card__status-dot"></span> Tạm dừng
+                        </div>
+                    </div>
+
+                    <!-- 2. Fan Device -->
+                    <div class="device-card" id="devCardFan">
+                        <div class="device-card__header">
+                            <div class="device-card__info">
+                                <div class="device-card__graphic-box" id="graphicFan" aria-hidden="true">
+                                    <span id="iconFan">🌀</span>
+                                </div>
+                                <div>
+                                    <div class="device-card__name">Quạt tản nhiệt</div>
+                                    <div class="device-card__sub">Relay kênh 2 (GPIO 26)</div>
+                                </div>
+                            </div>
+                            <label class="device-card__toggle" aria-label="Bật hoặc tắt quạt tản nhiệt">
+                                <input type="checkbox" id="toggleFan" onchange="toggleDevice('fan', this.checked)">
+                                <span class="device-card__toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="device-card__mode-group" role="group" aria-label="Chế độ vận hành quạt">
+                            <button class="mode-btn mode-btn--active" id="fanAuto" type="button" onclick="setMode('fan','auto')">🤖 Tự động</button>
+                            <button class="mode-btn" id="fanManual" type="button" onclick="setMode('fan','manual')">✋ Thủ công</button>
+                        </div>
+                        <div class="device-card__status device-card__status--off" id="statusFan" role="status">
+                            <span class="device-card__status-dot"></span> Tạm dừng
+                        </div>
+                    </div>
+
+                    <!-- 3. LED Lighting -->
+                    <div class="device-card" id="devCardLed">
+                        <div class="device-card__header">
+                            <div class="device-card__info">
+                                <div class="device-card__graphic-box" id="graphicLed" aria-hidden="true">
+                                    <span id="iconLed">💡</span>
+                                </div>
+                                <div>
+                                    <div class="device-card__name">Đèn LED quang hợp</div>
+                                    <div class="device-card__sub">Relay kênh 3 (GPIO 27)</div>
+                                </div>
+                            </div>
+                            <label class="device-card__toggle" aria-label="Bật hoặc tắt đèn LED quang hợp">
+                                <input type="checkbox" id="toggleLed" onchange="toggleDevice('led', this.checked)">
+                                <span class="device-card__toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="device-card__mode-group" role="group" aria-label="Chế độ vận hành đèn LED">
+                            <button class="mode-btn mode-btn--active" id="ledAuto" type="button" onclick="setMode('led','auto')">🤖 Tự động</button>
+                            <button class="mode-btn" id="ledManual" type="button" onclick="setMode('led','manual')">✋ Thủ công</button>
+                        </div>
+                        <div class="device-card__status device-card__status--off" id="statusLed" role="status">
+                            <span class="device-card__status-dot"></span> Tạm dừng
+                        </div>
+                    </div>
+
+                    <!-- 4. Alarm Buzzer -->
+                    <div class="device-card" id="devCardBuzzer">
+                        <div class="device-card__header">
+                            <div class="device-card__info">
+                                <div class="device-card__graphic-box" id="graphicBuzzer" aria-hidden="true">
+                                    <span id="iconBuzzer">🔔</span>
+                                </div>
+                                <div>
+                                    <div class="device-card__name">Còi cảnh báo</div>
+                                    <div class="device-card__sub">Relay kênh 4 (GPIO 14)</div>
+                                </div>
+                            </div>
+                            <label class="device-card__toggle" aria-label="Bật hoặc tắt còi báo động">
+                                <input type="checkbox" id="toggleBuzzer" onchange="toggleDevice('buzzer', this.checked)">
+                                <span class="device-card__toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="device-card__mode-group" role="group" aria-label="Chế độ vận hành còi báo">
+                            <button class="mode-btn mode-btn--active" id="buzzerAuto" type="button" onclick="setMode('buzzer','auto')">🤖 Tự động</button>
+                            <button class="mode-btn" id="buzzerManual" type="button" onclick="setMode('buzzer','manual')">✋ Thủ công</button>
+                        </div>
+                        <div class="device-card__status device-card__status--off" id="statusBuzzer" role="status">
+                            <span class="device-card__status-dot"></span> Tạm dừng
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Activity Log -->
+            <aside class="section-block" id="logs" aria-labelledby="heading-activity">
+                <div class="section-block__header">
+                    <h2 class="section-block__title" id="heading-activity">
+                        <span aria-hidden="true">📋</span> NHẬT KÝ HOẠT ĐỘNG THỜI GIAN THỰC
+                    </h2>
+                    <span class="section-block__badge">Live Feed</span>
+                </div>
+                <div class="activity-log" id="logContainer" role="log" aria-live="polite">
+                    <div class="activity-log__entry">
+                        <span class="activity-log__time">--:--:--</span>
+                        <span class="activity-log__dot activity-log__dot--info"></span>
+                        <span class="activity-log__message">Hệ thống đang khởi tạo trạm quan trắc...</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- ==========================================
+             SECTION 3: REAL-TIME TELEMETRY CHART
+             ========================================== -->
+        <section class="section-block" id="charts" aria-labelledby="heading-chart">
+            <div class="section-block__header">
+                <h2 class="section-block__title" id="heading-chart">
+                    <span aria-hidden="true">📈</span> BIỂU ĐỒ DIỄN BIẾN MÔI TRƯỜNG THEO THỜI GIAN
+                </h2>
+                <span class="section-block__badge">Cập nhật 2s / lần</span>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-panel__tabs" id="chartTabs" role="tablist" aria-label="Chọn thông số cảm biến xem đồ thị">
+                    <button class="chart-tab chart-tab--active" data-sensor="temp" type="button" role="tab" onclick="switchChart('temp')">🌡️ Nhiệt Độ (°C)</button>
+                    <button class="chart-tab" data-sensor="humidity" type="button" role="tab" onclick="switchChart('humidity')">💧 Độ Ẩm KK (%)</button>
+                    <button class="chart-tab" data-sensor="soil" type="button" role="tab" onclick="switchChart('soil')">🌱 Ẩm Đất (%)</button>
+                    <button class="chart-tab" data-sensor="light" type="button" role="tab" onclick="switchChart('light')">☀️ Ánh Sáng (lux)</button>
+                    <button class="chart-tab" data-sensor="water" type="button" role="tab" onclick="switchChart('water')">🚰 Mực Nước (%)</button>
+                    <button class="chart-tab" data-sensor="gas" type="button" role="tab" onclick="switchChart('gas')">💨 Khói/Gas (ppm)</button>
+                </div>
+                <div class="chart-panel__canvas-wrap">
+                    <canvas id="sensorChart" aria-label="Đồ thị cảm biến thời gian thực" role="img"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="app-footer" role="contentinfo">
+        <p>🌿 Trạm Quan Trắc &amp; Điều Khiển Nhà Kính Thông Minh &copy; 2026 — ESP32 Smart Agriculture IoT Solution</p>
+    </footer>
+
+    <!-- Toast Notifications Mountpoint -->
+    <div class="toast-container" id="toastContainer" aria-live="assertive"></div>
+
+    <!-- ===== JAVASCRIPT ASSETS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
