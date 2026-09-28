@@ -50,7 +50,83 @@
             };
 
             this.activeChartSensor = 'temp';
+            this.activeZoneId = 'zone-a';
+            this.zones = this.initZones();
             this.listeners = [];
+        }
+
+        /**
+         * Initialize zones from localStorage or default config
+         */
+        initZones() {
+            try {
+                const saved = localStorage.getItem('greenhouse_zones_v1');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch (err) {
+                console.warn('Could not read zones from localStorage:', err);
+            }
+            return JSON.parse(JSON.stringify(Config.DEFAULT_ZONES));
+        }
+
+        saveZonesToStorage() {
+            try {
+                localStorage.setItem('greenhouse_zones_v1', JSON.stringify(this.zones));
+            } catch (err) {
+                console.warn('Could not save zones to localStorage:', err);
+            }
+            this.notify('zones');
+        }
+
+        getActiveZone() {
+            return this.zones.find(z => z.id === this.activeZoneId) || this.zones[0];
+        }
+
+        setActiveZone(zoneId) {
+            if (this.zones.some(z => z.id === zoneId)) {
+                this.activeZoneId = zoneId;
+                this.notify('activeZone');
+            }
+        }
+
+        updateZone(zoneId, updatedFields) {
+            const index = this.zones.findIndex(z => z.id === zoneId);
+            if (index !== -1) {
+                this.zones[index] = Object.assign({}, this.zones[index], updatedFields);
+                this.saveZonesToStorage();
+                return this.zones[index];
+            }
+            return null;
+        }
+
+        addZone(zoneData) {
+            const newId = `zone-${Date.now().toString(36)}`;
+            const newZone = Object.assign({
+                id: newId,
+                name: `Khu Mới`,
+                cropName: 'Cây Trồng Tự Chọn',
+                cropType: 'custom',
+                cropIcon: '🌿',
+                stage: 'Phát triển',
+                plantingDate: new Date().toLocaleDateString('vi-VN'),
+                thresholds: Object.assign({}, Config.DEFAULT_THRESHOLDS)
+            }, zoneData, { id: newId });
+
+            this.zones.push(newZone);
+            this.saveZonesToStorage();
+            return newZone;
+        }
+
+        deleteZone(zoneId) {
+            if (this.zones.length <= 1) return false;
+            this.zones = this.zones.filter(z => z.id !== zoneId);
+            if (this.activeZoneId === zoneId) {
+                this.activeZoneId = this.zones[0].id;
+            }
+            this.saveZonesToStorage();
+            return true;
         }
 
         /**

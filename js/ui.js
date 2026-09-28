@@ -370,6 +370,117 @@
                 toast.style.animation = 'toastExit 0.3s ease forwards';
                 setTimeout(() => toast.remove(), 300);
             }, Config.TOAST_DURATION_MS);
+        },
+
+        /**
+         * Render Zone Selector dropdown in the Navbar
+         */
+        renderZoneDropdown(state) {
+            const select = document.getElementById('zoneSelect');
+            const iconEl = document.getElementById('zoneIcon');
+            if (!select) return;
+
+            select.innerHTML = '';
+            state.zones.forEach(zone => {
+                const opt = document.createElement('option');
+                opt.value = zone.id;
+                opt.textContent = `${zone.name} - ${zone.cropName}`;
+                if (zone.id === state.activeZoneId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            const active = state.getActiveZone();
+            if (iconEl && active) iconEl.textContent = active.cropIcon || '🌱';
+        },
+
+        /**
+         * Render Active Zone & Crop Info Banner below preset bar
+         */
+        renderActiveZoneBanner(state) {
+            const active = state.getActiveZone();
+            const iconEl = document.getElementById('bannerCropIcon');
+            const titleEl = document.getElementById('bannerZoneTitle');
+            const metaEl = document.getElementById('bannerZoneMeta');
+
+            if (iconEl && active) iconEl.textContent = active.cropIcon || '🌱';
+            if (titleEl && active) titleEl.textContent = `${active.name} — ${active.cropName}`;
+            if (metaEl && active) {
+                metaEl.textContent = `Giai đoạn: ${active.stage || 'Phát triển'} • Trồng ngày: ${active.plantingDate || 'Hôm nay'} • Ngưỡng khuyến nghị tối ưu`;
+            }
+        },
+
+        /**
+         * Open and render the Zone & Crop Customization Modal
+         */
+        openZoneModal(targetZoneId) {
+            const State = window.GreenhouseState;
+            const modal = document.getElementById('zoneModal');
+            if (!modal) return;
+
+            const zoneId = targetZoneId || State.activeZoneId;
+            this.renderZoneModalContent(State, zoneId);
+            modal.classList.add('modal-overlay--open');
+        },
+
+        /**
+         * Close Zone Customization Modal
+         */
+        closeZoneModal() {
+            const modal = document.getElementById('zoneModal');
+            if (modal) modal.classList.remove('modal-overlay--open');
+        },
+
+        /**
+         * Populate Zone Customization Modal tabs and form content
+         */
+        renderZoneModalContent(state, currentZoneId) {
+            const zoneTabs = document.getElementById('modalZoneTabs');
+            const targetZone = state.zones.find(z => z.id === currentZoneId) || state.getActiveZone();
+            if (!zoneTabs || !targetZone) return;
+
+            // Render Zone Tabs
+            zoneTabs.innerHTML = '';
+            state.zones.forEach(z => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `modal-tab-btn ${z.id === targetZone.id ? 'modal-tab-btn--active' : ''}`;
+                btn.innerHTML = `<span>${z.cropIcon || '🌱'}</span> ${z.name}`;
+                btn.onclick = () => this.renderZoneModalContent(state, z.id);
+                zoneTabs.appendChild(btn);
+            });
+
+            // Add Zone button
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'modal-tab-btn modal-tab-btn--add';
+            addBtn.innerHTML = '<span>➕</span> Thêm khu mới';
+            addBtn.onclick = () => window.handleAddNewZone();
+            zoneTabs.appendChild(addBtn);
+
+            // Populate Form Fields
+            document.getElementById('editZoneId').value = targetZone.id;
+            document.getElementById('editZoneName').value = targetZone.name;
+            document.getElementById('editCropName').value = targetZone.cropName;
+            document.getElementById('editCropIcon').value = targetZone.cropIcon || '🥬';
+            document.getElementById('editGrowthStage').value = targetZone.stage || 'Phát triển';
+            document.getElementById('editPlantingDate').value = targetZone.plantingDate || '';
+
+            // Crop Preset selector
+            const cropPresetSelect = document.getElementById('editCropPresetSelect');
+            if (cropPresetSelect) {
+                cropPresetSelect.value = targetZone.cropType || 'custom';
+            }
+
+            // Populate Thresholds in Modal
+            const th = targetZone.thresholds || Config.DEFAULT_THRESHOLDS;
+            document.getElementById('modalThreshTempHigh').value = th.tempHigh ?? 32;
+            document.getElementById('modalThreshTempLow').value = th.tempLow ?? 22;
+            document.getElementById('modalThreshHumLow').value = th.humLow ?? 50;
+            document.getElementById('modalThreshHumHigh').value = th.humHigh ?? 75;
+            document.getElementById('modalThreshSoilLow').value = th.soilLow ?? 40;
+            document.getElementById('modalThreshSoilHigh').value = th.soilHigh ?? 70;
+            document.getElementById('modalThreshLightLow').value = th.lightLow ?? 400;
+            document.getElementById('modalThreshLightHigh').value = th.lightHigh ?? 1200;
         }
     };
 

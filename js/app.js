@@ -193,7 +193,7 @@
     }
 
     function exportTelemetryCSV() {
-        const headers = ['Thời gian', 'Nhiệt độ (°C)', 'Độ ẩm KK (%)', 'Độ ẩm đất (%)', 'Ánh sáng (lux)', 'Mực nước (%)', 'Khói gas (ppm)'];
+        const headers = ['Thời gian', 'Nhiệt độ (°C)', 'Độ ẩm không khí (%)', 'Độ ẩm đất (%)', 'Ánh sáng (lux)', 'Mực nước (%)', 'Khói gas (ppm)'];
         const rows = State.chartData.labels.map((time, idx) => [
             time,
             State.chartData.temp[idx] || 0,
@@ -216,9 +216,147 @@
     }
 
     function handleZoneChange(selectEl) {
-        const zoneName = selectEl.options[selectEl.selectedIndex].text;
-        UI.addLog('info', `Đang theo dõi: ${zoneName}`);
-        UI.showToast(`Đã chuyển sang ${zoneName}`, 'success');
+        const zoneId = selectEl.value;
+        State.setActiveZone(zoneId);
+        const active = State.getActiveZone();
+
+        UI.renderActiveZoneBanner(State);
+        UI.addLog('info', `Đang theo dõi ${active.name}: ${active.cropName} (${active.cropIcon})`);
+        UI.showToast(`Đã chuyển sang ${active.name} (${active.cropName})`, 'success');
+
+        // Automatically apply this zone's recommended thresholds
+        if (active.thresholds) {
+            Service.saveThresholds(active.thresholds);
+            UI.syncThresholdInputs(State.thresholds);
+            UI.showToast(`Đã áp dụng ngưỡng sinh trưởng cho ${active.cropName}`, 'info');
+        }
+    }
+
+    function openZoneModal(targetZoneId) {
+        UI.openZoneModal(targetZoneId);
+    }
+
+    function closeZoneModal() {
+        UI.closeZoneModal();
+    }
+
+    function handleCropPresetSelect(selectEl) {
+        const cropKey = selectEl.value;
+        const preset = Config.CROP_PRESETS[cropKey];
+        if (!preset) return;
+
+        document.getElementById('editCropName').value = preset.name;
+        document.getElementById('editCropIcon').value = preset.icon;
+        document.getElementById('editGrowthStage').value = preset.stage;
+
+        if (preset.thresholds) {
+            document.getElementById('modalThreshTempHigh').value = preset.thresholds.tempHigh;
+            document.getElementById('modalThreshTempLow').value = preset.thresholds.tempLow;
+            document.getElementById('modalThreshHumLow').value = preset.thresholds.humLow;
+            document.getElementById('modalThreshHumHigh').value = preset.thresholds.humHigh;
+            document.getElementById('modalThreshSoilLow').value = preset.thresholds.soilLow;
+            document.getElementById('modalThreshSoilHigh').value = preset.thresholds.soilHigh;
+            document.getElementById('modalThreshLightLow').value = preset.thresholds.lightLow;
+            document.getElementById('modalThreshLightHigh').value = preset.thresholds.lightHigh;
+        }
+
+        UI.showToast(`Đã nạp thông số tiêu chuẩn cho: ${preset.name}`, 'info');
+    }
+
+    async function handleSaveZoneSettings() {
+        const zoneId = document.getElementById('editZoneId').value;
+        const name = document.getElementById('editZoneName').value.trim() || 'Khu Vườn';
+        const cropName = document.getElementById('editCropName').value.trim() || 'Cây Trồng';
+        const cropIcon = document.getElementById('editCropIcon').value.trim() || '🌱';
+        const stage = document.getElementById('editGrowthStage').value.trim();
+        const plantingDate = document.getElementById('editPlantingDate').value.trim();
+        const cropType = document.getElementById('editCropPresetSelect').value;
+
+        const thresholds = {
+            tempHigh: parseFloat(document.getElementById('modalThreshTempHigh').value) || 32,
+            tempLow: parseFloat(document.getElementById('modalThreshTempLow').value) || 22,
+            humLow: parseFloat(document.getElementById('modalThreshHumLow').value) || 50,
+            humHigh: parseFloat(document.getElementById('modalThreshHumHigh').value) || 75,
+            soilLow: parseFloat(document.getElementById('modalThreshSoilLow').value) || 40,
+            soilHigh: parseFloat(document.getElementById('modalThreshSoilHigh').value) || 70,
+            lightLow: parseFloat(document.getElementById('modalThreshLightLow').value) || 400,
+            lightHigh: parseFloat(document.getElementById('modalThreshLightHigh').value) || 1200,
+            waterLow: State.thresholds.waterLow,
+            gasHigh: State.thresholds.gasHigh
+        };
+
+        const updated = State.updateZone(zoneId, {
+            name,
+            cropName,
+            cropIcon,
+            stage,
+            plantingDate,
+            cropType,
+            thresholds
+        });
+
+        // If saving the active zone, immediately update live thresholds too
+        if (zoneId === State.activeZoneId) {
+            await Service.saveThresholds(thresholds);
+            UI.syncThresholdInputs(State.thresholds);
+        }
+
+        UI.renderZoneDropdown(State);
+        UI.renderActiveZoneBanner(State);
+        UI.closeZoneModal();
+
+        UI.addLog('info', `Đã cập nhật cài đặt ${name}: Trồng ${cropName} (${cropIcon})`);
+        UI.showToast(`Đã lưu cài đặt ${name} thành công!`, 'success');
+    }
+
+    async function handleApplyZoneThresholds() {
+        const zoneId = document.getElementById('editZoneId').value;
+        const zone = State.zones.find(z => z.id === zoneId);
+        if (!zone || !zone.thresholds) return;
+
+        State.setActiveZone(zoneId);
+        await Service.saveThresholds(zone.thresholds);
+        UI.syncThresholdInputs(State.thresholds);
+        UI.renderZoneDropdown(State);
+        UI.renderActiveZoneBanner(State);
+        UI.closeZoneModal();
+
+        UI.addLog('warning', `Đã kích hoạt toàn bộ ngưỡng tối ưu cho ${zone.cropName}`);
+        UI.showToast(`Đã áp dụng ngưỡng của ${zone.cropName} vào hệ thống!`, 'success');
+    }
+
+    function handleAddNewZone() {
+        const count = State.zones.length + 1;
+        const letter = String.fromCharCode(64 + count);
+        const newZone = State.addZone({
+            name: `Khu ${letter}`,
+            cropName: 'Dâu Tây Đà Lạt',
+            cropType: 'strawberry',
+            cropIcon: '🍓',
+            stage: 'Cây con',
+            plantingDate: new Date().toLocaleDateString('vi-VN'),
+            thresholds: Config.CROP_PRESETS.strawberry.thresholds
+        });
+
+        UI.renderZoneDropdown(State);
+        UI.renderZoneModalContent(State, newZone.id);
+        UI.showToast(`Đã tạo thêm ${newZone.name}!`, 'success');
+    }
+
+    function handleDeleteCurrentZone() {
+        const zoneId = document.getElementById('editZoneId').value;
+        if (State.zones.length <= 1) {
+            UI.showToast('Không thể xóa phân khu cuối cùng!', 'warning');
+            return;
+        }
+
+        if (confirm('Bạn có chắc muốn xóa phân khu này khỏi danh sách?')) {
+            State.deleteZone(zoneId);
+            UI.renderZoneDropdown(State);
+            UI.renderActiveZoneBanner(State);
+            UI.renderZoneModalContent(State, State.activeZoneId);
+            UI.showToast('Đã xóa phân khu!', 'info');
+        }
     }
 
     function triggerTestAlert() {
@@ -270,12 +408,22 @@
     window.handleZoneChange = handleZoneChange;
     window.triggerTestAlert = triggerTestAlert;
 
+    window.openZoneModal = openZoneModal;
+    window.closeZoneModal = closeZoneModal;
+    window.handleCropPresetSelect = handleCropPresetSelect;
+    window.handleSaveZoneSettings = handleSaveZoneSettings;
+    window.handleApplyZoneThresholds = handleApplyZoneThresholds;
+    window.handleAddNewZone = handleAddNewZone;
+    window.handleDeleteCurrentZone = handleDeleteCurrentZone;
+
     /**
      * Main Application Initialization
      */
     document.addEventListener('DOMContentLoaded', () => {
         // 1. Initialize UI elements
         UI.initClock();
+        UI.renderZoneDropdown(State);
+        UI.renderActiveZoneBanner(State);
         UI.syncThresholdInputs(State.thresholds);
         UI.renderDevices(State);
         UI.renderSensors(State);
@@ -306,11 +454,18 @@
                 case 'chart':
                     Chart.update();
                     break;
+                case 'zones':
+                case 'activeZone':
+                    UI.renderZoneDropdown(state);
+                    UI.renderActiveZoneBanner(state);
+                    break;
             }
         });
 
         // 4. Initial System Logs
-        UI.addLog('info', '🌿 Trạm quan trắc Nhà Kính Thông Minh đã sẵn sàng');
+        const currentZone = State.getActiveZone();
+        UI.addLog('info', `🌿 Trạm quan trắc Nhà Kính Thông Minh đã sẵn sàng (Phân khu: ${currentZone.name})`);
+        UI.addLog('info', `🌱 Cây trồng mục tiêu: ${currentZone.cropName} (${currentZone.stage || 'Sinh trưởng'})`);
         UI.addLog('info', 'Đang kết nối vi điều khiển ESP32...');
 
         // 5. Initial Telemetry query & start polling loop

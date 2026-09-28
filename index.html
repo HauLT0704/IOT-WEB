@@ -45,13 +45,19 @@
                     </div>
                 </a>
 
-                <div class="zone-selector" title="Chọn phân khu nhà kính">
-                    <span aria-hidden="true">📍</span>
-                    <select id="zoneSelect" onchange="handleZoneChange(this)" aria-label="Phân khu nhà kính">
-                        <option value="zone-a">Khu A - Rau Thủy Canh</option>
-                        <option value="zone-b">Khu B - Dưa Lưới Công Nghệ Cao</option>
-                        <option value="zone-c">Khu C - Vườn Ươm Cây Giống</option>
-                    </select>
+                <div class="zone-selector-wrapper">
+                    <div class="zone-selector" title="Chọn phân khu nhà kính">
+                        <span aria-hidden="true" id="zoneIcon">🥬</span>
+                        <select id="zoneSelect" onchange="handleZoneChange(this)" aria-label="Phân khu nhà kính">
+                            <option value="zone-a">Khu A - Rau Thủy Canh</option>
+                            <option value="zone-b">Khu B - Dưa Lưới Fuji</option>
+                            <option value="zone-c">Khu C - Vườn Ươm Cây Giống</option>
+                        </select>
+                    </div>
+                    <button class="zone-config-btn" type="button" onclick="openZoneModal()" title="Cài đặt phân khu & cây trồng">
+                        <span aria-hidden="true">⚙️</span>
+                        <span>Cài đặt cây trồng</span>
+                    </button>
                 </div>
             </div>
 
@@ -114,6 +120,20 @@
                 <button class="preset-chip" data-preset="rainy" type="button" onclick="applyPreset('rainy')">🌧️ Mùa mưa ẩm</button>
                 <button class="preset-chip" data-preset="nursery" type="button" onclick="applyPreset('nursery')">🌱 Vườn ươm nhạy cảm</button>
             </div>
+        </div>
+
+        <!-- Active Zone & Planted Crop Banner -->
+        <div class="active-zone-banner" id="activeZoneBanner">
+            <div class="active-zone-info">
+                <span class="active-zone-icon" id="bannerCropIcon" aria-hidden="true">🥬</span>
+                <div>
+                    <div class="active-zone-title" id="bannerZoneTitle">Khu A — Rau Xà Lách Thủy Canh</div>
+                    <div class="active-zone-meta" id="bannerZoneMeta">Giai đoạn: Phát triển thân lá • Trồng ngày: 15/09/2026 • Ngưỡng khuyến nghị tối ưu</div>
+                </div>
+            </div>
+            <button class="active-zone-edit-btn" type="button" onclick="openZoneModal()">
+                ✏️ Tùy chỉnh cây trồng khu này
+            </button>
         </div>
 
         <!-- ==========================================
@@ -233,7 +253,7 @@
                         </div>
                     </div>
                     <button class="sensor-card__save-btn" type="button" onclick="saveThresholds('humidity')">
-                        <span aria-hidden="true">💾</span> Lưu ngưỡng độ ẩm KK
+                        <span aria-hidden="true">💾</span> Lưu ngưỡng độ ẩm không khí
                     </button>
                 </article>
 
@@ -593,7 +613,7 @@
             <div class="chart-panel">
                 <div class="chart-panel__tabs" id="chartTabs" role="tablist" aria-label="Chọn thông số cảm biến xem đồ thị">
                     <button class="chart-tab chart-tab--active" data-sensor="temp" type="button" role="tab" onclick="switchChart('temp')">🌡️ Nhiệt Độ (°C)</button>
-                    <button class="chart-tab" data-sensor="humidity" type="button" role="tab" onclick="switchChart('humidity')">💧 Độ Ẩm KK (%)</button>
+                    <button class="chart-tab" data-sensor="humidity" type="button" role="tab" onclick="switchChart('humidity')">💧 Độ Ẩm Không Khí (%)</button>
                     <button class="chart-tab" data-sensor="soil" type="button" role="tab" onclick="switchChart('soil')">🌱 Ẩm Đất (%)</button>
                     <button class="chart-tab" data-sensor="light" type="button" role="tab" onclick="switchChart('light')">☀️ Ánh Sáng (lux)</button>
                     <button class="chart-tab" data-sensor="water" type="button" role="tab" onclick="switchChart('water')">🚰 Mực Nước (%)</button>
@@ -610,6 +630,115 @@
     <footer class="app-footer" role="contentinfo">
         <p>🌿 Trạm Quan Trắc &amp; Điều Khiển Nhà Kính Thông Minh &copy; 2026 — ESP32 Smart Agriculture IoT Solution</p>
     </footer>
+
+    <!-- ===== ZONE & CROP CUSTOMIZATION MODAL ===== -->
+    <div class="modal-overlay" id="zoneModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">
+                    <span aria-hidden="true">🌿</span> Tùy Chỉnh Phân Khu &amp; Cây Trồng
+                </h3>
+                <button class="modal-close-btn" type="button" onclick="closeZoneModal()" aria-label="Đóng hộp thoại">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- Zone Tabs -->
+                <div class="modal-tabs" id="modalZoneTabs" role="tablist"></div>
+
+                <!-- Zone & Crop Form -->
+                <input type="hidden" id="editZoneId">
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="editZoneName">Tên phân khu:</label>
+                        <input type="text" class="form-input" id="editZoneName" placeholder="Ví dụ: Khu A, Khu 1...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editCropPresetSelect">Chọn mẫu cây trồng chuẩn:</label>
+                        <select class="form-select" id="editCropPresetSelect" onchange="handleCropPresetSelect(this)">
+                            <option value="custom">-- Tự nhập cây trồng khác --</option>
+                            <option value="vegetable">🥬 Rau Xà Lách &amp; Cải Xoăn Thủy Canh</option>
+                            <option value="melon">🍈 Dưa Lưới Fuji Nhật Bản</option>
+                            <option value="strawberry">🍓 Dâu Tây Đà Lạt</option>
+                            <option value="tomato">🍅 Cà Chua Bi Cherry</option>
+                            <option value="mushroom">🍄 Nấm Bào Ngư / Nấm Mối</option>
+                            <option value="orchid">🌸 Hoa Lan Hồ Điệp</option>
+                            <option value="nursery">🌱 Vườn Ươm Hạt &amp; Cây Con</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editCropName">Tên loại cây trồng:</label>
+                        <input type="text" class="form-input" id="editCropName" placeholder="Tên giống cây...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editCropIcon">Biểu tượng (Emoji):</label>
+                        <input type="text" class="form-input" id="editCropIcon" placeholder="🥬, 🍈, 🍓, 🍅, 🍄, 🌸, 🌱...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editGrowthStage">Giai đoạn sinh trưởng:</label>
+                        <input type="text" class="form-input" id="editGrowthStage" placeholder="Ví dụ: Phát triển thân lá, Ra hoa, Nuôi trái...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editPlantingDate">Ngày bắt đầu trồng:</label>
+                        <input type="text" class="form-input" id="editPlantingDate" placeholder="dd/mm/yyyy">
+                    </div>
+
+                    <!-- Target Thresholds for This Crop -->
+                    <div class="form-group full-width">
+                        <div class="modal-thresh-section">
+                            <div class="modal-thresh-title">
+                                <span aria-hidden="true">🎯</span> Ngưỡng Môi Trường Khuyến Nghị Riêng Cho Cây Này
+                            </div>
+                            <div class="modal-thresh-grid">
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshTempHigh">Nhiệt độ tối đa bật quạt (°C):</label>
+                                    <input type="number" id="modalThreshTempHigh" step="0.5">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshTempLow">Nhiệt độ tối thiểu tắt quạt (°C):</label>
+                                    <input type="number" id="modalThreshTempLow" step="0.5">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshHumLow">Độ ẩm không khí tối thiểu (%):</label>
+                                    <input type="number" id="modalThreshHumLow">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshHumHigh">Độ ẩm không khí tối đa (%):</label>
+                                    <input type="number" id="modalThreshHumHigh">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshSoilLow">Độ ẩm đất tối thiểu bật tưới (%):</label>
+                                    <input type="number" id="modalThreshSoilLow">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshSoilHigh">Độ ẩm đất tối đa dừng tưới (%):</label>
+                                    <input type="number" id="modalThreshSoilHigh">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshLightLow">Ánh sáng tối thiểu bật LED (lux):</label>
+                                    <input type="number" id="modalThreshLightLow">
+                                </div>
+                                <div class="modal-thresh-item">
+                                    <label for="modalThreshLightHigh">Ánh sáng tối đa tắt LED (lux):</label>
+                                    <input type="number" id="modalThreshLightHigh">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn--delete" type="button" onclick="handleDeleteCurrentZone()">🗑️ Xóa khu này</button>
+                <div class="modal-footer-left">
+                    <button class="modal-btn modal-btn--apply" type="button" onclick="handleApplyZoneThresholds()">🌿 Áp dụng ngưỡng ngay</button>
+                    <button class="modal-btn modal-btn--save" type="button" onclick="handleSaveZoneSettings()">💾 Lưu cài đặt khu</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Notifications Mountpoint -->
     <div class="toast-container" id="toastContainer" aria-live="assertive"></div>
