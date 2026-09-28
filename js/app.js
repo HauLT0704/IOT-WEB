@@ -301,12 +301,62 @@
             UI.syncThresholdInputs(State.thresholds);
         }
 
+        // Save ESP32 Hardware IP if provided
+        const ipInput = document.getElementById('cfgEsp32Ip');
+        if (ipInput) {
+            const rawIp = ipInput.value.trim();
+            if (rawIp) {
+                let formattedIp = rawIp;
+                if (!formattedIp.startsWith('http://') && !formattedIp.startsWith('https://')) {
+                    formattedIp = `http://${formattedIp}`;
+                }
+                formattedIp = formattedIp.replace(/\/+$/, '');
+                localStorage.setItem('greenhouse_esp32_ip', formattedIp);
+            } else {
+                localStorage.removeItem('greenhouse_esp32_ip');
+            }
+        }
+
         UI.renderZoneDropdown(State);
         UI.renderActiveZoneBanner(State);
         UI.closeZoneModal();
 
         UI.addLog('info', `Đã cập nhật cài đặt ${name}: Trồng ${cropName} (${cropIcon})`);
         UI.showToast(`Đã lưu cài đặt ${name} thành công!`, 'success');
+    }
+
+    /**
+     * Test HTTP connection to physical ESP32
+     */
+    async function testEsp32Connection() {
+        const ipInput = document.getElementById('cfgEsp32Ip');
+        let ip = ipInput ? ipInput.value.trim() : '';
+        if (!ip) {
+            UI.showToast('Vui lòng nhập địa chỉ IP của ESP32 (ví dụ: 192.168.1.50)', 'warning');
+            return;
+        }
+        if (!ip.startsWith('http://') && !ip.startsWith('https://')) {
+            ip = `http://${ip}`;
+        }
+        ip = ip.replace(/\/+$/, '');
+
+        UI.showToast(`Đang thử kết nối tới ${ip}...`, 'info');
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 3500);
+            const res = await fetch(`${ip}/sensors`, { signal: controller.signal });
+            clearTimeout(timer);
+            if (res.ok) {
+                localStorage.setItem('greenhouse_esp32_ip', ip);
+                UI.showToast(`✅ Kết nối thành công tới ESP32 (${ip})!`, 'success');
+                UI.addLog('info', `Đã kết nối thành công vi điều khiển ESP32 tại ${ip}`);
+                Service.fetchTelemetry();
+            } else {
+                UI.showToast(`Phản hồi mã ${res.status} từ ${ip}`, 'warning');
+            }
+        } catch (err) {
+            UI.showToast(`❌ Không kết nối được tới ${ip}. Hãy kiểm tra WiFi!`, 'error');
+        }
     }
 
     async function handleApplyZoneThresholds() {
@@ -446,6 +496,7 @@
     window.handleApplyZoneThresholds = handleApplyZoneThresholds;
     window.handleAddNewZone = handleAddNewZone;
     window.handleDeleteCurrentZone = handleDeleteCurrentZone;
+    window.testEsp32Connection = testEsp32Connection;
 
     /**
      * Main Application Initialization

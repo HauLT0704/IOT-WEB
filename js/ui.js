@@ -481,6 +481,12 @@
             document.getElementById('modalThreshSoilHigh').value = th.soilHigh ?? 70;
             document.getElementById('modalThreshLightLow').value = th.lightLow ?? 400;
             document.getElementById('modalThreshLightHigh').value = th.lightHigh ?? 1200;
+
+            // Populate ESP32 IP input
+            const ipInput = document.getElementById('cfgEsp32Ip');
+            if (ipInput) {
+                ipInput.value = localStorage.getItem('greenhouse_esp32_ip') || '';
+            }
         }
     };
 

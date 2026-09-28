@@ -707,6 +707,24 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ESP32 Hardware Network Configuration -->
+                    <div class="form-group full-width">
+                        <div class="modal-thresh-section" style="border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.05); padding: 14px; border-radius: 8px;">
+                            <div class="modal-thresh-title" style="color: #1d4ed8; font-weight: 700; margin-bottom: 6px;">
+                                <span aria-hidden="true">📡</span> Kết Nối Phần Cứng Vi Điều Khiển ESP32 (Tùy chọn)
+                            </div>
+                            <p style="font-size: 0.78rem; color: #475569; margin-bottom: 8px;">
+                                Nhập địa chỉ IP hiển thị trên màn hình LCD hoặc Serial Monitor của ESP32 (để trống nếu muốn chạy mô phỏng):
+                            </p>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" class="form-input" id="cfgEsp32Ip" placeholder="Ví dụ: 192.168.1.50 hoặc http://192.168.4.1" style="flex: 1; padding: 7px 12px; font-size: 0.85rem;">
+                                <button type="button" class="modal-btn" onclick="testEsp32Connection()" title="Kiểm tra kết nối tới ESP32" style="background: #2563eb; color: #ffffff; padding: 7px 14px; font-size: 0.78rem; border-radius: 6px; cursor: pointer; border: none; font-weight: 600; white-space: nowrap;">
+                                    ⚡ Kiểm tra IP
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

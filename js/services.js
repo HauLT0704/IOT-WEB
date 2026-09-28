@@ -68,13 +68,30 @@
         }
     }
 
+    // Helper: Resolve API base URL dynamically (from localStorage or Config)
+    function getApiBase() {
+        let ip = (localStorage.getItem('greenhouse_esp32_ip') || Config.API_BASE || '').trim();
+        if (ip && !ip.startsWith('http://') && !ip.startsWith('https://')) {
+            ip = `http://${ip}`;
+        }
+        return ip.replace(/\/+$/, '');
+    }
+
     const GreenhouseService = {
+        /**
+         * Get current API base URL
+         */
+        getApiBaseUrl() {
+            return getApiBase();
+        },
+
         /**
          * Query real-time telemetry from ESP32
          */
         async fetchTelemetry() {
+            const apiBase = getApiBase();
             try {
-                const response = await fetchWithTimeout(`${Config.API_BASE}/sensors`);
+                const response = await fetchWithTimeout(`${apiBase}/sensors`);
                 if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
                 const data = await response.json();
 
@@ -120,8 +137,9 @@
          * @param {boolean} state
          */
         async setDeviceRelay(deviceId, state) {
+            const apiBase = getApiBase();
             try {
-                await fetchWithTimeout(`${Config.API_BASE}/control?device=${deviceId}&state=${state ? 1 : 0}`);
+                await fetchWithTimeout(`${apiBase}/control?device=${deviceId}&state=${state ? 1 : 0}`);
             } catch (err) {
                 console.warn(`[API] Control device failed (${deviceId}), applied locally:`, err);
             }
@@ -134,8 +152,9 @@
          * @param {string} mode ('auto' | 'manual')
          */
         async setDeviceMode(deviceId, mode) {
+            const apiBase = getApiBase();
             try {
-                await fetchWithTimeout(`${Config.API_BASE}/mode?device=${deviceId}&mode=${mode}`);
+                await fetchWithTimeout(`${apiBase}/mode?device=${deviceId}&mode=${mode}`);
             } catch (err) {
                 console.warn(`[API] Set mode failed (${deviceId}), applied locally:`, err);
             }
@@ -147,12 +166,13 @@
          * @param {Object} thresholdObj
          */
         async saveThresholds(thresholdObj) {
+            const apiBase = getApiBase();
             const queryParams = Object.keys(thresholdObj)
                 .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(thresholdObj[key])}`)
                 .join('&');
 
             try {
-                await fetchWithTimeout(`${Config.API_BASE}/threshold?${queryParams}`);
+                await fetchWithTimeout(`${apiBase}/threshold?${queryParams}`);
             } catch (err) {
                 console.warn('[API] Save threshold failed, updated locally:', err);
             }
