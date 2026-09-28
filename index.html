@@ -32,17 +32,14 @@
     <div class="bg-overlay" aria-hidden="true"></div>
     <canvas class="bg-canvas" id="bgCanvas" aria-hidden="true"></canvas>
 
-    <!-- ===== FULL MODERN NAVBAR ===== -->
+    <!-- ===== STREAMLINED ELEGANT NAVBAR ===== -->
     <header class="app-header" role="banner">
         <div class="app-header__inner">
-            <!-- Left: Brand & Zone Selector -->
+            <!-- Left: Clean Brand & Zone Selector -->
             <div class="app-header__left">
                 <a href="#overview" class="app-header__brand" title="Trang chủ Nhà Kính">
                     <div class="app-header__logo-badge" aria-hidden="true">🌿</div>
-                    <div class="app-header__titles">
-                        <span class="app-header__title">Nhà Kính Thông Minh</span>
-                        <span class="app-header__subtitle">Smart Greenhouse IoT Pro</span>
-                    </div>
+                    <span class="app-header__title">Nhà Kính Thông Minh</span>
                 </a>
 
                 <div class="zone-selector-wrapper">
@@ -54,48 +51,30 @@
                             <option value="zone-c">Khu C - Vườn Ươm Cây Giống</option>
                         </select>
                     </div>
-                    <button class="zone-config-btn" type="button" onclick="openZoneModal()" title="Cài đặt phân khu & cây trồng">
+                    <button class="zone-config-btn" type="button" onclick="openZoneModal()" title="Cài đặt phân khu &amp; cây trồng">
                         <span aria-hidden="true">⚙️</span>
-                        <span>Cài đặt cây trồng</span>
+                        <span>Tùy chỉnh</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Center: Full Navigation Links -->
+            <!-- Center: Streamlined Navigation Links -->
             <nav class="app-nav" role="navigation" aria-label="Menu chính">
-                <a href="#overview" class="nav-link active">📊 Tổng quan</a>
-                <a href="#sensors" class="nav-link">🌱 Cảm biến</a>
-                <a href="#actuators" class="nav-link">⚡ Thiết bị</a>
-                <a href="#charts" class="nav-link">📈 Đồ thị</a>
-                <a href="#logs" class="nav-link">📋 Nhật ký</a>
+                <a href="#sensors" class="nav-link active" onclick="scrollToSection('sensors'); return false;">🌱 Cảm biến</a>
+                <a href="#actuators" class="nav-link" onclick="scrollToSection('actuators'); return false;">⚡ Thiết bị</a>
+                <a href="#charts" class="nav-link" onclick="scrollToSection('charts'); return false;">📈 Đồ thị</a>
+                <a href="#logs" class="nav-link" onclick="scrollToSection('logs'); return false;">📋 Nhật ký</a>
             </nav>
 
-            <!-- Right: Status Badge, Quick Tools & Digital Clock -->
+            <!-- Right: Minimal Essential Tools & Clean Clock -->
             <div class="app-header__right">
-                <div class="app-header__status-badge app-header__status-badge--demo" id="connectionBadge" role="status" aria-live="polite">
-                    <span class="app-header__status-dot" aria-hidden="true"></span>
-                    <span id="connectionText">Chế độ Demo</span>
-                </div>
-
-                <!-- Quick Action Buttons -->
                 <button class="tool-btn" id="btnRefresh" type="button" onclick="refreshData()" title="Làm mới dữ liệu">
                     <span class="tool-icon" aria-hidden="true">🔄</span>
-                </button>
-                <button class="tool-btn" type="button" onclick="triggerTestAlert()" title="Thử nghiệm báo động">
-                    <span class="tool-icon" aria-hidden="true">🔔</span>
                 </button>
                 <button class="tool-btn" type="button" onclick="exportTelemetryCSV()" title="Xuất báo cáo CSV">
                     <span class="tool-icon" aria-hidden="true">📥</span>
                 </button>
-                <button class="tool-btn" type="button" onclick="toggleFullscreen()" title="Chế độ toàn màn hình">
-                    <span class="tool-icon" aria-hidden="true">⛶</span>
-                </button>
-
-                <!-- Clock & Date -->
-                <div class="app-header__clock-wrap">
-                    <time class="app-header__clock" id="clock" aria-label="Giờ hiện tại">--:--:--</time>
-                    <span class="app-header__date" id="headerDate">--/--/----</span>
-                </div>
+                <time class="app-header__clock" id="clock" aria-label="Giờ hiện tại">--:--:--</time>
             </div>
         </div>
     </header>

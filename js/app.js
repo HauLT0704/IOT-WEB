@@ -385,6 +385,36 @@
     }
 
     /**
+     * Smooth scroll accurately to any section with header offset and visual pulse
+     */
+    function scrollToSection(targetId) {
+        const el = document.getElementById(targetId);
+        if (!el) return;
+
+        const header = document.querySelector('.app-header');
+        const headerHeight = header ? header.offsetHeight : 70;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerHeight - 16;
+
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+
+        // Update active nav-link state
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${targetId}`) {
+                link.classList.add('active');
+            }
+        });
+
+        // Add soft highlight pulse effect
+        el.classList.add('section-highlight');
+        setTimeout(() => el.classList.remove('section-highlight'), 1800);
+    }
+
+    /**
      * Attach global helper methods to window
      */
     window.toggleDevice = handleDeviceToggle;
@@ -407,6 +437,7 @@
     window.exportTelemetryCSV = exportTelemetryCSV;
     window.handleZoneChange = handleZoneChange;
     window.triggerTestAlert = triggerTestAlert;
+    window.scrollToSection = scrollToSection;
 
     window.openZoneModal = openZoneModal;
     window.closeZoneModal = closeZoneModal;
